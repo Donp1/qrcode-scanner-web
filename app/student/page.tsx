@@ -24,7 +24,7 @@ export default function StudentAuthPage() {
     console.log({ regNumber, password, name });
 
     // Temporary redirect
-    router.push("/dashboard/student");
+    router.push("/student/dashboard");
   };
 
   return (
