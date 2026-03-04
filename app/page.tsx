@@ -1,65 +1,169 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  QrCode,
+  GraduationCap,
+  UserCheck,
+  ShieldCheck,
+  BarChart3,
+} from "lucide-react";
+import Link from "next/link";
+
+export default function LandingPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen bg-linear-to-br from-slate-950 via-slate-900 to-slate-950 text-white overflow-hidden">
+      {/* Background Glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.15),transparent_40%),radial-gradient(circle_at_70%_70%,rgba(168,85,247,0.15),transparent_40%)]" />
+
+      {/* Navbar */}
+      <nav className="relative z-10 flex items-center justify-between px-6 md:px-16 py-6">
+        <div className="flex items-center gap-2 text-xl font-bold">
+          <QrCode className="w-6 h-6" />
+          SmartAttend
+        </div>
+        <div className="hidden md:flex gap-6 text-sm text-slate-300">
+          <a href="#features" className="hover:text-white transition">
+            Features
+          </a>
+          <a href="#about" className="hover:text-white transition">
+            About
+          </a>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="relative z-10 px-6 md:px-16 pt-12 md:pt-24 pb-20 grid md:grid-cols-2 gap-12 items-center">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">
+            Smart QR-Based <span className="text-blue-500">Attendance</span> &
+            Authentication
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mt-6 text-slate-300 text-lg leading-relaxed">
+            A modern cloud-powered platform for secure student verification,
+            real-time attendance tracking, and powerful analytics dashboards for
+            institutions.
           </p>
+
+          <div className="mt-10 flex flex-col sm:flex-row gap-4">
+            <Link href="/student" className="cursor-pointer">
+              <Button className="w-full sm:w-auto px-8 py-6 text-lg rounded-2xl cursor-pointer">
+                Login as Student
+              </Button>
+            </Link>
+            <Link href="/lecturer">
+              <Button
+                variant="outline"
+                className="w-full bg-black sm:w-auto px-8 py-6 text-lg rounded-2xl border-slate-600 text-white cursor-pointer"
+              >
+                Login as Lecturer
+              </Button>
+            </Link>
+          </div>
+        </motion.div>
+
+        {/* Animated Card */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="relative"
+        >
+          <Card className="bg-slate-900/70 backdrop-blur-xl border border-slate-700 shadow-2xl rounded-2xl">
+            <CardContent className="p-8 space-y-6">
+              <div className="flex items-center gap-4">
+                <UserCheck className="w-8 h-8 text-blue-500" />
+                <div>
+                  <h3 className="font-semibold text-lg text-gray-100">
+                    Secure Student Verification
+                  </h3>
+                  <p className="text-slate-400 text-sm ">
+                    Unique QR for every student
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <ShieldCheck className="w-8 h-8 text-purple-500" />
+                <div>
+                  <h3 className="font-semibold text-lg text-gray-100">
+                    Cloud Security
+                  </h3>
+                  <p className="text-slate-400 text-sm">
+                    Real-time database storage
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <BarChart3 className="w-8 h-8 text-green-500" />
+                <div>
+                  <h3 className="font-semibold text-lg text-gray-100">
+                    Analytics Dashboard
+                  </h3>
+                  <p className="text-slate-400 text-sm">
+                    Monitor attendance trends
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="relative z-10 px-6 md:px-16 py-20">
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
+          Why Choose SmartAttend?
+        </h2>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[
+            {
+              icon: <QrCode className="w-8 h-8" />,
+              title: "Instant QR Scanning",
+              desc: "Fast and accurate attendance marking within seconds.",
+            },
+            {
+              icon: <ShieldCheck className="w-8 h-8" />,
+              title: "Secure Authentication",
+              desc: "Prevent impersonation with unique encrypted QR codes.",
+            },
+            {
+              icon: <BarChart3 className="w-8 h-8" />,
+              title: "Real-Time Reports",
+              desc: "View attendance data instantly from anywhere.",
+            },
+          ].map((feature, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: i * 0.2 }}
+              viewport={{ once: true }}
+            >
+              <Card className="bg-slate-900/60 border h- border-slate-700 rounded-2xl hover:scale-105 transition-transform duration-300">
+                <CardContent className="p-8 space-y-4">
+                  <div className="text-blue-500">{feature.icon}</div>
+                  <h3 className="text-xl font-semibold text-gray-100">
+                    {feature.title}
+                  </h3>
+                  <p className="text-slate-400 text-sm">{feature.desc}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </section>
+
+      {/* Footer */}
+      <footer className="relative z-10 px-6 md:px-16 py-10 border-t border-slate-800 text-center text-slate-500 text-sm">
+        © {new Date().getFullYear()} SmartAttend. All rights reserved.
+      </footer>
     </div>
   );
 }
