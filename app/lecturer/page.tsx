@@ -8,9 +8,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, User, GraduationCap } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function LecturerAuthPage() {
   const [isRegister, setIsRegister] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+
+  const router = useRouter();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // TODO: Connect to backend API
+    console.log({ email, password, name });
+
+    // Temporary redirect
+    router.push("/lecturer/dashboard");
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex items-center justify-center px-4">
@@ -38,7 +54,7 @@ export default function LecturerAuthPage() {
           </CardHeader>
 
           <CardContent className="space-y-5">
-            <form className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {isRegister && (
                 <div className="space-y-2">
                   <Label className="text-gray-300">Full Name</Label>
