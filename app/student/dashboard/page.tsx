@@ -69,30 +69,6 @@ export default function StudentDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white flex">
-      {/* Sidebar */}
-      {/* <div
-        className={`fixed md:relative z-40 top-0 left-0 h-screen w-64 bg-slate-900 border-r border-white/10 p-6 transition-transform duration-300 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        }`}
-      >
-        <h2 className="text-xl font-bold mb-8 text-indigo-400">
-          Student Panel
-        </h2>
-
-        <nav className="space-y-4">
-          <SidebarItem icon={<LayoutDashboard size={18} />} label="Dashboard" />
-          <SidebarItem icon={<BookOpen size={18} />} label="My Courses" />
-          <SidebarItem icon={<CalendarCheck size={18} />} label="Attendance" />
-          <SidebarItem icon={<User size={18} />} label="Profile" />
-        </nav>
-
-        <div className="absolute bottom-6 left-6">
-          <Button variant="ghost" className="text-red-400 hover:text-red-500">
-            <LogOut size={18} className="mr-2" /> Logout
-          </Button>
-        </div>
-      </div> */}
-
       {/* Main Content */}
       <div className="flex-1 p-6 md:p-10">
         {/* Top Bar */}
@@ -141,18 +117,18 @@ export default function StudentDashboard() {
                 </thead>
                 <tbody className="divide-y divide-white/10">
                   <tr>
-                    <td className="py-3">Web Development</td>
-                    <td>Feb 15, 2026</td>
+                    <td className="py-3 text-gray-400">Web Development</td>
+                    <td className="text-gray-400">Feb 15, 2026</td>
                     <td className="text-green-400">Present</td>
                   </tr>
                   <tr>
-                    <td className="py-3">Database Systems</td>
-                    <td>Feb 14, 2026</td>
+                    <td className="py-3 text-gray-400">Database Systems</td>
+                    <td className="text-gray-400">Feb 14, 2026</td>
                     <td className="text-red-400">Absent</td>
                   </tr>
                   <tr>
-                    <td className="py-3">AI Fundamentals</td>
-                    <td>Feb 13, 2026</td>
+                    <td className="py-3 text-gray-400">AI Fundamentals</td>
+                    <td className="text-gray-400">Feb 13, 2026</td>
                     <td className="text-green-400">Present</td>
                   </tr>
                 </tbody>
