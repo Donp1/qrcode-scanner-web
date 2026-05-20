@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // directUrl = env("DIRECT_URL")
+}
+
+model Student {
+  id                String       @id @default(uuid())
+  regNumber         String       @unique
+  name              String
+  faculty           String?
+  department        String?
+  level             String?
+  passwordHash      String
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  registeredCourses Course[]     @relation("StudentCourses")
+  attendances       Attendance[]
+}
+
+model Lecturer {
+  id              String       @id @default(uuid())
+  email           String       @unique
+  name            String
+  faculty         String?
+  department      String?
+  passwordHash    String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  assignedCourses Course[]     @relation("LecturerCourses")
+  attendances     Attendance[]
+}
+
+model Course {
+  id         String   @id @default(uuid())
+  code       String   @unique
+  name       String
+  faculty    String?
+  department String?
+  level      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  registeredStudents Student[]    @relation("StudentCourses")
+  assignedLecturers  Lecturer[]   @relation("LecturerCourses")
+  attendances        Attendance[]
+}
+
+model Attendance {
+  id String @id @default(uuid())
+
+  studentId  String
+  lecturerId String
+  courseId   String
+
+  type   AttendanceType
+  status AttendanceStatus @default(PRESENT)
+
+  date DateTime @default(now())
+
+  student  Student  @relation(fields: [studentId], references: [id])
+  lecturer Lecturer @relation(fields: [lecturerId], references: [id])
+  course   Course   @relation(fields: [courseId], references: [id])
+}
+
+enum AttendanceType {
+  CLASS
+  TEST
+  EXAM
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+}
