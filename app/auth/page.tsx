@@ -41,13 +41,11 @@ export default function Home() {
   // =========================
   // SEND TOKEN TO BACKEND
   // =========================
-  const handleCreateUser = async (
-    tokenId: string,
-    provider: string
-  ) => {
+  const handleCreateUser = async (tokenId: string, provider: string) => {
     try {
       const response = await fetch(
-        "https://gluviacare.onrender.com/api/v1/auth/social/google",
+        "http://localhost:4000/api/v1/auth/social/google",
+        // "https://gluviacare.onrender.com/api/v1/auth/social/google",
         {
           method: "POST",
           headers: {
@@ -57,7 +55,7 @@ export default function Home() {
             idToken: tokenId,
             provider,
           }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -66,9 +64,7 @@ export default function Home() {
 
       if (!response.ok) {
         throw new Error(
-          data?.details ||
-            data?.message ||
-            "Authentication failed"
+          data?.details || data?.message || "Authentication failed",
         );
       }
 
@@ -89,15 +85,20 @@ export default function Home() {
       const result = await createUserWithEmailAndPassword(
         auth,
         email,
-        password
+        password,
       );
 
       // SEND VERIFICATION EMAIL
       await sendEmailVerification(result.user);
 
       alert(
-        "Verification email sent. Please verify your email before logging in."
+        "Verification email sent. Please verify your email before logging in.",
       );
+
+      // GET FRESH TOKEN
+      const tokenId = await result.user.getIdToken(true);
+
+      await handleCreateUser(tokenId, "google.com");
 
       // OPTIONAL LOGOUT AFTER SIGNUP
       await signOut(auth);
@@ -121,26 +122,18 @@ export default function Home() {
     try {
       setLoading(true);
 
-      const result = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const result = await signInWithEmailAndPassword(auth, email, password);
 
       // RELOAD USER TO GET LATEST EMAIL VERIFIED STATUS
       await reload(result.user);
 
       // CHECK EMAIL VERIFICATION
       if (!result.user.emailVerified) {
-        alert(
-          "Please verify your email before logging in."
-        );
+        alert("Please verify your email before logging in.");
 
         await sendEmailVerification(result.user);
 
-        alert(
-          "A new verification email has been sent."
-        );
+        alert("A new verification email has been sent.");
 
         await signOut(auth);
 
@@ -161,10 +154,7 @@ export default function Home() {
     } catch (error: any) {
       console.error(error);
 
-      alert(
-        error?.message ||
-          "Failed to login"
-      );
+      alert(error?.message || "Failed to login");
     } finally {
       setLoading(false);
     }
@@ -187,19 +177,13 @@ export default function Home() {
 
       console.log("Firebase ID Token:", tokenId);
 
-      await handleCreateUser(
-        tokenId,
-        "google.com"
-      );
+      await handleCreateUser(tokenId, "google.com");
 
       alert("Google login successful");
     } catch (error: any) {
       console.error(error);
 
-      alert(
-        error?.message ||
-          "Google login failed"
-      );
+      alert(error?.message || "Google login failed");
     } finally {
       setLoading(false);
     }
@@ -212,40 +196,26 @@ export default function Home() {
     try {
       setLoading(true);
 
-      const provider = new OAuthProvider(
-        "apple.com"
-      );
+      const provider = new OAuthProvider("apple.com");
 
       provider.addScope("email");
       provider.addScope("name");
 
-      const result = await signInWithPopup(
-        auth,
-        provider
-      );
+      const result = await signInWithPopup(auth, provider);
 
       setUser(result.user);
 
       const tokenId = await result.user.getIdToken(true);
 
-      console.log(
-        "Apple Firebase ID Token:",
-        tokenId
-      );
+      console.log("Apple Firebase ID Token:", tokenId);
 
-      await handleCreateUser(
-        tokenId,
-        "apple.com"
-      );
+      await handleCreateUser(tokenId, "apple.com");
 
       alert("Apple login successful");
     } catch (error: any) {
       console.error(error);
 
-      alert(
-        error?.message ||
-          "Apple login failed"
-      );
+      alert(error?.message || "Apple login failed");
     } finally {
       setLoading(false);
     }
@@ -259,31 +229,21 @@ export default function Home() {
       setLoading(true);
 
       if (!(window as any).recaptchaVerifier) {
-        (window as any).recaptchaVerifier =
-          new RecaptchaVerifier(
-            auth,
-            "recaptcha-container",
-            {
-              size: "normal",
-              callback: () => {
-                console.log(
-                  "reCAPTCHA solved"
-                );
-              },
-            }
-          );
+        (window as any).recaptchaVerifier = new RecaptchaVerifier(
+          auth,
+          "recaptcha-container",
+          {
+            size: "normal",
+            callback: () => {
+              console.log("reCAPTCHA solved");
+            },
+          },
+        );
       }
 
-      const appVerifier = (
-        window as any
-      ).recaptchaVerifier;
+      const appVerifier = (window as any).recaptchaVerifier;
 
-      const result =
-        await signInWithPhoneNumber(
-          auth,
-          phone,
-          appVerifier
-        );
+      const result = await signInWithPhoneNumber(auth, phone, appVerifier);
 
       setConfirmationResult(result);
 
@@ -291,10 +251,7 @@ export default function Home() {
     } catch (error: any) {
       console.error(error);
 
-      alert(
-        error?.message ||
-          "Failed to send OTP"
-      );
+      alert(error?.message || "Failed to send OTP");
     } finally {
       setLoading(false);
     }
@@ -309,34 +266,21 @@ export default function Home() {
 
       if (!confirmationResult) return;
 
-      const result =
-        await confirmationResult.confirm(
-          otp
-        );
+      const result = await confirmationResult.confirm(otp);
 
       setUser(result.user);
 
-      const tokenId =
-        await result.user.getIdToken(true);
+      const tokenId = await result.user.getIdToken(true);
 
-      console.log(
-        "Phone Firebase ID Token:",
-        tokenId
-      );
+      console.log("Phone Firebase ID Token:", tokenId);
 
-      await handleCreateUser(
-        tokenId,
-        "phone"
-      );
+      await handleCreateUser(tokenId, "phone");
 
       alert("Phone login successful");
     } catch (error: any) {
       console.error(error);
 
-      alert(
-        error?.message ||
-          "OTP verification failed"
-      );
+      alert(error?.message || "OTP verification failed");
     } finally {
       setLoading(false);
     }
@@ -363,8 +307,7 @@ export default function Home() {
             </h1>
 
             <p className="mt-2 text-slate-400">
-              Test Email, Google, Apple and Phone
-              Authentication.
+              Test Email, Google, Apple and Phone Authentication.
             </p>
           </div>
 
@@ -389,9 +332,7 @@ export default function Home() {
                   type="email"
                   placeholder="Enter email"
                   value={email}
-                  onChange={(e) =>
-                    setEmail(e.target.value)
-                  }
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20"
                 />
 
@@ -399,9 +340,7 @@ export default function Home() {
                   type="password"
                   placeholder="Enter password"
                   value={password}
-                  onChange={(e) =>
-                    setPassword(e.target.value)
-                  }
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20"
                 />
 
@@ -453,9 +392,7 @@ export default function Home() {
                 type="text"
                 placeholder="+2348012345678"
                 value={phone}
-                onChange={(e) =>
-                  setPhone(e.target.value)
-                }
+                onChange={(e) => setPhone(e.target.value)}
                 className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20"
               />
 
@@ -473,9 +410,7 @@ export default function Home() {
                     type="text"
                     placeholder="Enter OTP"
                     value={otp}
-                    onChange={(e) =>
-                      setOtp(e.target.value)
-                    }
+                    onChange={(e) => setOtp(e.target.value)}
                     className="mt-4 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20"
                   />
 
@@ -489,10 +424,7 @@ export default function Home() {
                 </>
               )}
 
-              <div
-                id="recaptcha-container"
-                className="mt-6"
-              />
+              <div id="recaptcha-container" className="mt-6" />
             </div>
           </div>
         ) : (
@@ -503,8 +435,7 @@ export default function Home() {
               </p>
 
               <p className="mt-2 text-lg font-medium text-white">
-                {user.email ||
-                  user.phoneNumber}
+                {user.email || user.phoneNumber}
               </p>
             </div>
 
