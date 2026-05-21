@@ -1,4 +1,5 @@
-export const base_url = "http://localhost:5000";
+// export const base_url = "http://localhost:5000";
+export const base_url = "https://qrcode-scanner-web.onrender.com";
 
 export const faculties = [
   "Faculty of Science",
