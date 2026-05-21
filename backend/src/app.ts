@@ -13,10 +13,9 @@ export function createApp() {
 
   app.use(
     cors({
-      origin: process.env.CORS_ORIGIN
-        ? process.env.CORS_ORIGIN.split(",")
-        : "*",
-      credentials: true,
+      origin: "https://qrcode-scanner-web.vercel.app", // frontend URL
+      methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+      credentials: true, // if you need cookies/auth headers
     }),
   );
 
