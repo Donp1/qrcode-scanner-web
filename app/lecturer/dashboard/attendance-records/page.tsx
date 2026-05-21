@@ -208,31 +208,37 @@ export default function LecturerAttendancePage() {
       </div>
 
       {/* RECORDS */}
-      <div className="bg-white/5 border border-white/10 rounded p-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-indigo-300 mb-4">Attendance Records</h2>
+      <div className="bg-white/5 border border-white/10 rounded p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4">
+          <h2 className="text-indigo-300 text-lg sm:text-xl font-semibold">
+            Attendance Records
+          </h2>
+          {/* You can put search/filter buttons here if needed */}
         </div>
+
         <div className="space-y-3">
           {records.length === 0 ? (
-            <p className="text-gray-400">No records found</p>
+            <p className="text-gray-400 text-sm">No records found</p>
           ) : (
             records.map((r) => (
               <div
                 key={r.id}
-                className="flex justify-between items-center bg-slate-900 p-3 rounded border border-white/10"
+                className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-slate-900 p-3 rounded border border-white/10 space-y-2 sm:space-y-0"
               >
-                <div>
-                  <p className="font-medium">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-5 w-full sm:w-auto">
+                  <p className="font-medium text-sm sm:text-base">
                     {r.student.name} ({r.student.regNumber})
                   </p>
 
-                  <div className="flex gap-5 justify-center">
-                    <p className="text-sm text-gray-400">
+                  <div className="flex flex-wrap gap-3 sm:gap-5 items-center text-xs sm:text-sm text-gray-400">
+                    <p>
                       {r.course.code.toUpperCase()} - {r.course.name}
                     </p>
                     <TypeBadge type={String(r.type).toLowerCase()} />
                   </div>
+                </div>
 
+                <div className="flex flex-col sm:items-end gap-1">
                   <p className="text-xs text-gray-500">
                     {new Date(r.date).toLocaleDateString(undefined, {
                       weekday: "short",
@@ -243,8 +249,8 @@ export default function LecturerAttendancePage() {
                       minute: "2-digit",
                     })}
                   </p>
+                  <StatusBadge status={r.status} />
                 </div>
-                <StatusBadge status={r.status} />
               </div>
             ))
           )}
