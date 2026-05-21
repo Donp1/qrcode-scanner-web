@@ -47,27 +47,11 @@ export function AttendanceScanner({ active, onScan, onError }: Props) {
         const { Html5Qrcode } = await import("html5-qrcode");
 
         const html5Qrcode = new Html5Qrcode("lecturer-attendance-scanner");
-
         qrReaderRef.current = html5Qrcode;
 
-        // ✅ FIX: use getCameras instead of facingMode
-        const cameras = await Html5Qrcode.getCameras();
-
-        if (!cameras || cameras.length === 0) {
-          throw new Error("No camera device found");
-        }
-
-        const backCamera =
-          cameras.find(
-            (cam) =>
-              cam.label.toLowerCase().includes("back") ||
-              cam.label.toLowerCase().includes("rear"),
-          ) || cameras[0];
-
-        const cameraId = backCamera.id;
-
+        // Start scanning using back camera (facingMode: environment)
         await html5Qrcode.start(
-          cameraId,
+          { facingMode: { ideal: "environment" } }, // back camera
           {
             fps: 8,
             qrbox: { width: 300, height: 300 },
@@ -76,9 +60,8 @@ export function AttendanceScanner({ active, onScan, onError }: Props) {
           (decodedText: string) => {
             const now = Date.now();
 
-            // prevent duplicate scans spam
+            // Prevent duplicate scans within 2 seconds
             if (now - lastScanRef.current < 2000) return;
-
             lastScanRef.current = now;
 
             try {
@@ -87,15 +70,14 @@ export function AttendanceScanner({ active, onScan, onError }: Props) {
               console.error("Scan handler error:", err);
             }
           },
-          () => {
-            // ignore scan errors
+          (errorMessage) => {
+            // optional: ignore scan errors
           },
         );
 
         isScanningRef.current = true;
       } catch (error) {
         console.error("Camera start error:", error);
-
         onError(
           error instanceof Error
             ? error.message
