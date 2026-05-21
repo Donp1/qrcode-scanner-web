@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { base_url } from "@/constants";
+import { Course } from "./useCourses";
 
 type User = {
   id: string;
@@ -17,7 +18,7 @@ export interface Lecturer {
   name: string;
   faculty: string;
   department: string;
-  assignedCourses: string[];
+  assignedCourses: Course[];
   password: string;
   createdAt: string;
 }

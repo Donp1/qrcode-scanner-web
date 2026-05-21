@@ -38,9 +38,14 @@ const menuItems = [
     path: "/lecturer/dashboard/students",
   },
   {
-    name: "Attendance",
+    name: "Take Attendance",
     icon: Camera,
     path: "/lecturer/dashboard/attendance",
+  },
+  {
+    name: "Attendance Records",
+    icon: BookOpen,
+    path: "/lecturer/dashboard/attendance-records",
   },
   {
     name: "Profile",
@@ -219,7 +224,7 @@ export default function LecturerLayout({
             </div>
 
             {/* Bottom Card */}
-            <div className="mt-auto">
+            <div className="mt-auto pt-20">
               <div className="rounded-3xl bg-gradient-to-br from-indigo-600 to-purple-700 p-5">
                 <p className="text-sm text-indigo-100 mb-2">Lecturer Access</p>
 

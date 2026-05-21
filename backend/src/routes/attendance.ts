@@ -11,6 +11,8 @@ function badRequest(res: any, message: string) {
 attendanceRouter.post("/scan", requireAuth, async (req, res) => {
   const { studentId, courseId, type } = req.body ?? {};
 
+  console.log(req.body);
+
   if (!studentId || typeof studentId !== "string") {
     return badRequest(res, "studentId is required");
   }
@@ -54,10 +56,9 @@ attendanceRouter.post("/scan", requireAuth, async (req, res) => {
       include: { registeredCourses: true },
     });
 
-    if (
-      !student ||
-      !student.registeredCourses.some((course) => course.id === courseId)
-    ) {
+    console.log(student);
+
+    if (!student) {
       return res.status(400).json({
         success: false,
         error: "Invalid student",
@@ -65,6 +66,13 @@ attendanceRouter.post("/scan", requireAuth, async (req, res) => {
       });
     }
 
+    if (!student.registeredCourses.some((course) => course.id === courseId)) {
+      return res.status(400).json({
+        success: false,
+        error: "Student didn't register for this course",
+        code: "invalid_student",
+      });
+    }
     const existingAttendance = await prisma.attendance.findFirst({
       where: {
         studentId,

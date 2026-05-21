@@ -1,35 +1,45 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
 import {
   User,
   Mail,
   School,
   Hash,
   CalendarCheck,
-  QrCode,
-  BookOpen,
   CheckCircle2,
   XCircle,
+  BookOpen,
 } from "lucide-react";
-import QRCode from "react-qr-code";
+import { useStudentAuth } from "@/hooks/useStudentAuth";
 
 export default function ProfilePage() {
-  const [user] = useState({
-    name: "John Doe",
-    email: "johndoe@email.com",
-    matric: "CSC/2021/001",
-    faculty: "Science",
-    department: "Computer Science",
-    level: "300",
-    status: "Active",
-    attendanceRate: 87,
-    totalClasses: 120,
-    attended: 104,
-    courses: ["CSC301", "CSC307", "CSC309", "GST301"],
-    lastAttendance: "2026-05-12 09:14 AM",
-  });
+  const { loading, student } = useStudentAuth();
+
+  if (loading) {
+    return (
+      <div className="text-white p-6 min-h-screen flex items-center justify-center">
+        <span className="text-lg font-medium animate-bounce">
+          Loading profile...
+        </span>
+      </div>
+    );
+  }
+
+  if (!student) {
+    return <div className="text-red-400 p-6">No student data found</div>;
+  }
+
+  const courses = student.registeredCourses || [];
+
+  const fullName = student.name;
+  const initials = fullName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .toUpperCase();
+
+  const lastAttendance = "N/A"; // replace if you later add API field
 
   return (
     <div className="max-w-5xl mx-auto p-6 bg-slate-950 min-h-screen text-white">
@@ -49,130 +59,87 @@ export default function ProfilePage() {
           animate={{ opacity: 1, y: 0 }}
           className="md:col-span-2 bg-white/5 p-6 rounded-lg border border-white/10"
         >
+          {/* Header */}
           <div className="flex items-center gap-4 mb-6">
             <div className="w-16 h-16 rounded-full bg-indigo-600 flex items-center justify-center text-xl font-bold">
-              {user.name.charAt(0)}
+              {initials}
             </div>
 
             <div>
-              <h2 className="text-xl font-semibold">{user.name}</h2>
-              <p className="text-gray-400">{user.matric}</p>
+              <h2 className="text-xl font-semibold">{student.name}</h2>
+              <p className="text-gray-400">{student.regNumber}</p>
 
-              <span
-                className={`inline-flex items-center gap-1 mt-1 text-sm ${
-                  user.status === "Active" ? "text-green-400" : "text-red-400"
-                }`}
-              >
-                {user.status === "Active" ? (
-                  <CheckCircle2 size={16} />
-                ) : (
-                  <XCircle size={16} />
-                )}
-                {user.status}
+              <span className="inline-flex items-center gap-1 mt-1 text-sm text-green-400">
+                <CheckCircle2 size={16} />
+                Active
               </span>
             </div>
           </div>
 
           {/* Info */}
           <div className="space-y-3">
-            <ProfileItem icon={<Mail />} label="Email" value={user.email} />
-            <ProfileItem icon={<User />} label="Level" value={user.level} />
+            <ProfileItem
+              icon={<Mail />}
+              label="Reg Number"
+              value={student.regNumber}
+            />
+            <ProfileItem icon={<User />} label="Level" value={student.level} />
             <ProfileItem
               icon={<School />}
               label="Faculty"
-              value={user.faculty}
+              value={student.faculty}
             />
             <ProfileItem
               icon={<School />}
               label="Department"
-              value={user.department}
+              value={student.department}
             />
             <ProfileItem
               icon={<Hash />}
-              label="Matric No"
-              value={user.matric}
+              label="Student ID"
+              value={student.id}
             />
             <ProfileItem
               icon={<CalendarCheck />}
               label="Last Attendance"
-              value={user.lastAttendance}
+              value={lastAttendance}
             />
           </div>
         </motion.div>
 
-        {/* RIGHT: Attendance + QR */}
-        <div className="space-y-6">
-          {/* QR Code Box */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white/5 p-6 rounded-lg border border-white/10 flex flex-col items-center"
-          >
-            <QRCode value="STUDENT_REG_123456" size={180} />
-            <p className="text-sm text-gray-400 mb-3">Student QR Code</p>
+        {/* RIGHT: Courses */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white/5 p-6 rounded-lg border border-white/10"
+        >
+          <div className="flex items-center gap-2 mb-4 text-indigo-300">
+            <BookOpen size={18} />
+            <h3 className="font-semibold">Registered Courses</h3>
+          </div>
 
-            <p className="text-xs text-gray-500 mt-3 text-center">
-              Scan this code during lecture attendance
-            </p>
-          </motion.div>
-
-          {/* Attendance Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white/5 p-6 rounded-lg border border-white/10"
-          >
-            <h3 className="font-semibold mb-4 text-indigo-300">
-              Attendance Summary
-            </h3>
-
-            <div className="space-y-3 text-sm">
-              <Stat label="Total Classes" value={user.totalClasses} />
-              <Stat label="Attended" value={user.attended} />
-              <Stat label="Missed" value={user.totalClasses - user.attended} />
-
-              <div>
-                <p className="text-gray-400">Attendance Rate</p>
-                <p className="text-lg font-bold text-indigo-400">
-                  {user.attendanceRate}%
-                </p>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Courses */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white/5 p-6 rounded-lg border border-white/10"
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <BookOpen size={18} className="text-indigo-400" />
-              <h3 className="font-semibold">Registered Courses</h3>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {user.courses.map((c) => (
-                <span
-                  key={c}
-                  className="px-3 py-1 bg-indigo-600/20 border border-indigo-500/30 rounded text-sm"
+          {courses.length === 0 ? (
+            <p className="text-gray-400">No courses registered</p>
+          ) : (
+            <div className="space-y-3">
+              {courses.map((course: any) => (
+                <div
+                  key={course.id}
+                  className="bg-slate-900 border border-white/10 p-3 rounded"
                 >
-                  {c}
-                </span>
+                  <p className="font-medium text-white">
+                    {course.code.toUpperCase()}
+                  </p>
+                  <p className="text-sm text-gray-400">{course.name}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Level: {course.level}
+                  </p>
+                </div>
               ))}
             </div>
-          </motion.div>
-        </div>
+          )}
+        </motion.div>
       </div>
-
-      {/* Edit Button */}
-      <motion.button
-        whileHover={{ scale: 1.03 }}
-        whileTap={{ scale: 0.97 }}
-        className="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded"
-      >
-        Edit Profile
-      </motion.button>
     </div>
   );
 }
@@ -194,15 +161,6 @@ function ProfileItem({
         <p className="text-xs text-gray-400">{label}</p>
         <p className="font-medium text-sm">{value}</p>
       </div>
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: number | string }) {
-  return (
-    <div className="flex justify-between items-center">
-      <p className="text-gray-400">{label}</p>
-      <p className="font-semibold">{value}</p>
     </div>
   );
 }

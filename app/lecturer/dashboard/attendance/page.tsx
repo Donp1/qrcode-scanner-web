@@ -184,7 +184,7 @@ export default function LecturerAttendancePage() {
         }
 
         if (result.code === "invalid_student") {
-          toast.error("Invalid student.");
+          toast.error(result.error || "Invalid student.");
           return;
         }
 

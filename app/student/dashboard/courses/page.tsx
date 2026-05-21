@@ -3,174 +3,262 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
-
-const faculties = ["Science", "Engineering", "Arts"];
-const departments: Record<string, string[]> = {
-  Science: ["Computer Science", "Biology", "Chemistry"],
-  Engineering: ["Electrical", "Mechanical", "Civil"],
-  Arts: ["History", "Languages", "Philosophy"],
-};
-const levels = ["100", "200", "300", "400", "500"];
-const courses: Record<string, string[]> = {
-  "Computer Science": ["Data Structures", "Algorithms", "Databases"],
-  Biology: ["Genetics", "Ecology", "Microbiology"],
-  Chemistry: ["Organic Chemistry", "Inorganic Chemistry"],
-  Electrical: ["Circuit Analysis", "Electromagnetics"],
-  Mechanical: ["Thermodynamics", "Fluid Mechanics"],
-  Civil: ["Structural Analysis", "Geotechnical Engineering"],
-  History: ["World History", "African History"],
-  Languages: ["English", "French", "Arabic"],
-  Philosophy: ["Ethics", "Logic"],
-};
+import { Course, useCourses } from "@/hooks/useCourses";
+import { base_url, levels } from "@/constants";
+import toast from "react-hot-toast";
+import { useStudentAuth } from "@/hooks/useStudentAuth";
 
 export default function MyCourses() {
+  const { student, loading: studentLoading } = useStudentAuth();
   const [selectedLevel, setSelectedLevel] = useState("");
   const [selectedFaculty, setSelectedFaculty] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("");
-  const [selectedCourse, setSelectedCourse] = useState("");
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [isRegistering, setIsRegistering] = useState(false);
 
   const [availableDepartments, setAvailableDepartments] = useState<string[]>(
     [],
   );
-  const [availableCourses, setAvailableCourses] = useState<string[]>([]);
+  const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
+  const [registeredCourses, setRegisteredCourses] = useState<Course[]>(
+    student?.registeredCourses || [],
+  );
 
-  const [registeredCourses, setRegisteredCourses] = useState<
-    { level: string; faculty: string; department: string; course: string }[]
-  >([]);
+  const {
+    courses,
+    departments,
+    faculties,
+    loading: courseLoading,
+  } = useCourses();
 
   useEffect(() => {
+    if (student) {
+      setRegisteredCourses(student.registeredCourses || []);
+    }
+  }, [student]);
+
+  // Reset faculty change
+  useEffect(() => {
     if (selectedFaculty) {
-      setAvailableDepartments(departments[selectedFaculty]);
+      setAvailableDepartments(departments[selectedFaculty] || []);
       setSelectedDepartment("");
-      setSelectedCourse("");
+      setSelectedCourse(null);
       setAvailableCourses([]);
     }
   }, [selectedFaculty]);
 
+  // Filter courses when department OR level changes
   useEffect(() => {
-    if (selectedDepartment) {
-      setAvailableCourses(courses[selectedDepartment]);
-      setSelectedCourse("");
-    }
-  }, [selectedDepartment]);
+    if (!selectedDepartment || !selectedLevel) return;
 
-  const registerCourse = () => {
+    const filtered = courses.filter((course) => {
+      return (
+        course.faculty?.toLowerCase() === selectedFaculty.toLowerCase() &&
+        course.department?.toLowerCase() === selectedDepartment.toLowerCase() &&
+        course.level === selectedLevel
+      );
+    });
+
+    setAvailableCourses(filtered);
+    setSelectedCourse(null);
+  }, [selectedDepartment, selectedLevel]);
+
+  const registerCourse = async () => {
+    setIsRegistering(true);
     if (
       !selectedLevel ||
       !selectedFaculty ||
       !selectedDepartment ||
       !selectedCourse
     ) {
-      alert("Please select all fields before registering.");
+      toast.error("Please select all fields before registering.");
+      setIsRegistering(false);
       return;
     }
 
-    const newCourse = {
-      level: selectedLevel,
-      faculty: selectedFaculty,
-      department: selectedDepartment,
-      course: selectedCourse,
-    };
-
-    const exists = registeredCourses.find(
-      (c) =>
-        c.level === newCourse.level &&
-        c.faculty === newCourse.faculty &&
-        c.department === newCourse.department &&
-        c.course === newCourse.course,
-    );
+    const exists = registeredCourses.some((c) => c.id === selectedCourse.id);
 
     if (exists) {
-      alert("Course already registered.");
+      toast.error("Course already registered.");
+      setIsRegistering(false);
       return;
     }
 
-    setRegisteredCourses([...registeredCourses, newCourse]);
-    alert("Course registered successfully!");
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(`${base_url}/student/courses/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        courseId: selectedCourse.id,
+      }),
+    });
+
+    if (!res.ok) {
+      toast.error("Failed to register course.");
+      setIsRegistering(false);
+      return;
+    }
+
+    const data = await res.json();
+
+    if (!data.success) {
+      toast.error(data.error || "Failed to register course.");
+      setIsRegistering(false);
+      return;
+    }
+
+    setRegisteredCourses((prev) => [...prev, data?.newCourse]);
+    toast.success("Course registered successfully.");
+    setIsRegistering(false);
+    setSelectedLevel("");
+    setSelectedFaculty("");
+    setSelectedDepartment("");
+    setSelectedCourse(null);
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-slate-950 min-h-screen text-white rounded-lg">
-      <motion.h1
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-2xl font-bold mb-6 text-indigo-400"
-      >
-        My Courses
-      </motion.h1>
+    <>
+      {courseLoading || studentLoading ? (
+        <div className="max-w-4xl mx-auto p-6 bg-slate-950 min-h-screen text-white flex items-center justify-center">
+          <span className="animate-bounce">Loading...</span>
+        </div>
+      ) : (
+        <div className="max-w-4xl mx-auto p-6 bg-slate-950 min-h-screen text-white rounded-lg">
+          <motion.h1
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-2xl font-bold mb-6 text-indigo-400"
+          >
+            My Courses
+          </motion.h1>
 
-      {/* Registration Form */}
-      <div className="space-y-4 bg-white/5 p-6 rounded-lg border border-white/10 shadow-md">
-        <FormField
-          label="Level"
-          value={selectedLevel}
-          onChange={(e) => setSelectedLevel(e.target.value)}
-          options={levels}
-        />
+          {/* FORM */}
+          <div className="space-y-4 bg-white/5 p-6 rounded-lg border border-white/10">
+            <FormField
+              label="Level"
+              value={selectedLevel}
+              onChange={(e) => setSelectedLevel(e.target.value)}
+              options={levels}
+            />
 
-        <FormField
-          label="Faculty"
-          value={selectedFaculty}
-          onChange={(e) => setSelectedFaculty(e.target.value)}
-          options={faculties}
-        />
+            <FormField
+              label="Faculty"
+              value={selectedFaculty}
+              onChange={(e) => setSelectedFaculty(e.target.value)}
+              options={faculties}
+              disabled={!selectedLevel}
+            />
 
-        <FormField
-          label="Department"
-          value={selectedDepartment}
-          onChange={(e) => setSelectedDepartment(e.target.value)}
-          options={availableDepartments}
-          disabled={availableDepartments.length === 0}
-        />
+            <FormField
+              label="Department"
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              options={availableDepartments}
+              disabled={!selectedFaculty}
+            />
 
-        <FormField
-          label="Course"
-          value={selectedCourse}
-          onChange={(e) => setSelectedCourse(e.target.value)}
-          options={availableCourses}
-          disabled={availableCourses.length === 0}
-        />
-
-        <button
-          onClick={registerCourse}
-          className="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded transition"
-        >
-          Register Course
-        </button>
-      </div>
-
-      {/* Registered Courses */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="mt-8"
-      >
-        <h2 className="text-xl font-semibold mb-4 text-indigo-300">
-          Registered Courses
-        </h2>
-        {registeredCourses.length === 0 ? (
-          <p className="text-gray-400">No courses registered yet.</p>
-        ) : (
-          <ul className="space-y-2">
-            {registeredCourses.map((c, idx) => (
-              <motion.li
-                key={idx}
-                initial={{ x: -20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                className="flex items-center bg-slate-900 border border-white/10 px-4 py-2 rounded hover:bg-slate-800 transition"
+            {/* COURSE SELECT FIXED */}
+            <div>
+              <label className="block font-semibold mb-1 text-gray-300">
+                Course
+              </label>
+              <select
+                value={selectedCourse?.id || ""}
+                onChange={(e) => {
+                  const course = availableCourses.find(
+                    (c) => c.id === e.target.value,
+                  );
+                  setSelectedCourse(course || null);
+                }}
+                disabled={availableCourses.length === 0 || !selectedDepartment}
+                className="w-full bg-slate-900 border border-white/10 rounded px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <CheckCircle className="mr-2 text-indigo-400" />
-                {`${c.level} - ${c.faculty} - ${c.department} - ${c.course}`}
-              </motion.li>
-            ))}
-          </ul>
-        )}
-      </motion.div>
-    </div>
+                <option value="">Select Course</option>
+                {availableCourses.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.code} - {course.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              onClick={registerCourse}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 py-2 rounded disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center"
+              disabled={isRegistering}
+            >
+              {isRegistering ? (
+                <span className="animate-bounce text-md text-gray-400">
+                  loading...
+                </span>
+              ) : (
+                "Register Course"
+              )}
+            </button>
+          </div>
+
+          {/* REGISTERED */}
+          <div className="mt-10">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-xl font-semibold text-indigo-300">
+                Registered Courses
+              </h2>
+
+              <span className="text-xs text-gray-400 bg-white/5 px-3 py-1 rounded-full border border-white/10">
+                {registeredCourses.length} course
+                {registeredCourses.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+
+            {registeredCourses.length === 0 ? (
+              <div className="text-center py-10 bg-white/5 border border-white/10 rounded-lg">
+                <p className="text-gray-400">No courses registered yet</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Register courses to see them here
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {registeredCourses.map((c) => (
+                  <div
+                    key={c.id}
+                    className="group flex items-start justify-between bg-white/5 hover:bg-white/10 transition border border-white/10 rounded-lg p-4"
+                  >
+                    {/* Left side */}
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="text-indigo-400 mt-1" />
+
+                      <div>
+                        <p className="font-semibold text-white group-hover:text-indigo-300 transition">
+                          {c.code} — {c.name}
+                        </p>
+
+                        <p className="text-xs text-gray-400 mt-1">
+                          {c.department} • {c.faculty} • Level {c.level}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Right badge */}
+                    <span className="text-xs text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-2 py-1 rounded-md">
+                      Registered
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
-/* ---------------- Reusable Form Field ---------------- */
+/* ---------------- FORM FIELD ---------------- */
 function FormField({
   label,
   value,
@@ -191,7 +279,7 @@ function FormField({
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className="w-full bg-slate-900 border border-white/10 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        className="w-full bg-slate-900 border border-white/10 rounded px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <option value="">Select {label}</option>
         {options.map((opt) => (

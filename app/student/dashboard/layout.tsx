@@ -14,14 +14,27 @@ import {
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import { StudentProvider, useStudent } from "@/context/student-context";
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
+  return (
+    <StudentProvider>
+      <DashboardShell>{children}</DashboardShell>
+    </StudentProvider>
+  );
+}
+
+function DashboardShell({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const { student, loading } = useStudent();
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
@@ -63,6 +76,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       href: "/student/dashboard/profile",
     },
   ];
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    toast.success("Logged out successfully");
+    router.replace("/student");
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+        <span className="text-lg font-medium animate-bounce">Loading...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-white flex">
@@ -136,6 +163,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               text-red-400 hover:text-red-300
               hover:bg-red-500/10
             "
+            onClick={handleLogout}
           >
             <LogOut size={18} className="mr-2" />
             Logout
@@ -192,11 +220,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               "
             >
               <div className="w-9 h-9 rounded-full bg-indigo-500 flex items-center justify-center font-semibold">
-                J
+                {student?.name?.charAt(0)?.toUpperCase() ?? "S"}
               </div>
 
               <div className="leading-tight">
-                <p className="text-sm font-medium">John Doe</p>
+                <p className="text-sm font-medium">
+                  {student?.name ?? "Student"}
+                </p>
                 <p className="text-xs text-gray-400">Student</p>
               </div>
             </div>

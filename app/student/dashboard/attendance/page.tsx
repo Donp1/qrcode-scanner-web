@@ -2,63 +2,71 @@
 
 import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
-import { BookOpen, FileText, ClipboardCheck } from "lucide-react";
+import { useStudentAuth } from "@/hooks/useStudentAuth";
 
 type AttendanceType = "Class" | "Test" | "Exam";
 type AttendanceStatus = "Present" | "Absent" | "Late";
 
 interface AttendanceRecord {
-  date: string;
+  date: string; // raw ISO
+  formattedDate: string;
   status: AttendanceStatus;
   type: AttendanceType;
   title: string;
 }
 
-const mockData: AttendanceRecord[] = [
-  {
-    date: "2026-03-25",
-    status: "Present",
-    type: "Class",
-    title: "CSC301 Lecture",
-  },
-  {
-    date: "2026-03-26",
-    status: "Absent",
-    type: "Test",
-    title: "CSC307 Quiz 1",
-  },
-  {
-    date: "2026-03-27",
-    status: "Late",
-    type: "Class",
-    title: "GST301 Tutorial",
-  },
-  {
-    date: "2026-03-28",
-    status: "Present",
-    type: "Exam",
-    title: "Mid Semester Exam",
-  },
-  {
-    date: "2026-03-29",
-    status: "Present",
-    type: "Test",
-    title: "CSC309 CA Test",
-  },
-];
-
 const tabs: AttendanceType[] = ["Class", "Test", "Exam"];
 
 export default function AttendanceSection() {
-  const [records] = useState<AttendanceRecord[]>(mockData);
   const [activeTab, setActiveTab] = useState<AttendanceType>("Class");
+  const [selectedDate, setSelectedDate] = useState<string>("");
 
-  const filtered = useMemo(
-    () => records.filter((r) => r.type === activeTab),
-    [records, activeTab],
-  );
+  const { loading, recentAttendance } = useStudentAuth();
+
+  // ✅ Transform backend data
+  const records: AttendanceRecord[] = useMemo(() => {
+    if (!recentAttendance) return [];
+
+    return recentAttendance.map((item: any) => {
+      const dateObj = new Date(item.date);
+
+      return {
+        date: item.date,
+        formattedDate: dateObj.toLocaleString(),
+        status:
+          item.status === "PRESENT"
+            ? "Present"
+            : item.status === "ABSENT"
+              ? "Absent"
+              : "Late",
+        type:
+          item.type === "CLASS"
+            ? "Class"
+            : item.type === "TEST"
+              ? "Test"
+              : "Exam",
+        title: `${item.course.code.toUpperCase()} - ${item.course.name}`,
+      };
+    });
+  }, [recentAttendance]);
+
+  // ✅ Filter by tab + date
+  const filtered = useMemo(() => {
+    return records
+      .filter((r) => r.type === activeTab)
+      .filter((r) => {
+        if (!selectedDate) return true;
+
+        const recordDate = new Date(r.date).toISOString().split("T")[0];
+        return recordDate === selectedDate;
+      });
+  }, [records, activeTab, selectedDate]);
 
   const presentCount = filtered.filter((r) => r.status === "Present").length;
+
+  if (loading) {
+    return <div className="text-white p-6">Loading attendance...</div>;
+  }
 
   return (
     <div className="max-w-5xl mx-auto p-6 bg-slate-950 min-h-screen text-white">
@@ -72,7 +80,7 @@ export default function AttendanceSection() {
       </motion.h1>
 
       {/* Tabs */}
-      <div className="flex gap-3 mb-6 flex-wrap">
+      <div className="flex gap-3 mb-4 flex-wrap">
         {tabs.map((tab) => (
           <button
             key={tab}
@@ -86,6 +94,25 @@ export default function AttendanceSection() {
             {tab}
           </button>
         ))}
+      </div>
+
+      {/* Date Filter */}
+      <div className="mb-6 flex items-center gap-3">
+        <input
+          type="date"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+          className="px-3 py-2 rounded-md bg-white/5 border border-white/10 text-white"
+        />
+
+        {selectedDate && (
+          <button
+            onClick={() => setSelectedDate("")}
+            className="text-sm text-red-400 hover:underline"
+          >
+            Clear
+          </button>
+        )}
       </div>
 
       {/* Stats */}
@@ -115,22 +142,28 @@ export default function AttendanceSection() {
         </h2>
 
         <div className="space-y-3">
-          {filtered.map((record, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="flex justify-between items-center px-4 py-3 bg-slate-900 border border-white/10 rounded hover:bg-slate-800"
-            >
-              <div>
-                <p className="text-gray-200 font-medium">{record.title}</p>
-                <p className="text-gray-400 text-sm">{record.date}</p>
-              </div>
+          {filtered.length === 0 ? (
+            <p className="text-gray-400">No records found.</p>
+          ) : (
+            filtered.map((record, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="flex justify-between items-center px-4 py-3 bg-slate-900 border border-white/10 rounded hover:bg-slate-800"
+              >
+                <div>
+                  <p className="text-gray-200 font-medium">{record.title}</p>
+                  <p className="text-gray-400 text-sm">
+                    {record.formattedDate}
+                  </p>
+                </div>
 
-              <StatusBadge status={record.status} />
-            </motion.div>
-          ))}
+                <StatusBadge status={record.status} />
+              </motion.div>
+            ))
+          )}
         </div>
       </motion.div>
     </div>

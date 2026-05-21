@@ -1,15 +1,16 @@
 import { base_url } from "@/constants";
 import { useEffect, useState } from "react";
 
-type Course = {
+export type Course = {
   id: string;
   code: string;
   name: string;
   faculty?: string | null;
   department?: string | null;
+  level?: string | null;
 };
 
-type DepartmentCourse = {
+export type DepartmentCourse = {
   id: string;
   code: string;
   title: string;

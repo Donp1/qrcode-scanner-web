@@ -61,6 +61,7 @@ export default function StudentAuthPage() {
       }
 
       toast.success("Student registered successfully");
+      localStorage.clear();
       localStorage.setItem("token", data.token);
       setIsSubmitting(false);
       // Temporary redirect
@@ -69,28 +70,36 @@ export default function StudentAuthPage() {
       // TODO: Connect to backend API
       console.log({ regNumber, password });
 
-      const res = await fetch(`${base_url}/auth/student/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          regNumber,
-          password,
-        }),
-      });
+      try {
+        const res = await fetch(`${base_url}/auth/student/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            regNumber,
+            password,
+          }),
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      if (!data?.success) {
-        toast.error(data?.error || "Failed to login student");
+        if (!data?.success) {
+          toast.error(data?.error || "Failed to login student");
+          setIsSubmitting(false);
+          return;
+        }
+
+        toast.success("Student logged in successfully");
+        localStorage.clear();
+        localStorage.setItem("token", data.token);
+        setIsSubmitting(false);
+        // Temporary redirect
+        router.push("/student/dashboard");
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to login student: " + error);
         setIsSubmitting(false);
         return;
       }
-
-      toast.success("Student logged in successfully");
-      localStorage.setItem("token", data.token);
-      setIsSubmitting(false);
-      // Temporary redirect
-      router.push("/student/dashboard");
     }
   };
 
