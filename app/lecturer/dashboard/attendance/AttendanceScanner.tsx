@@ -57,7 +57,14 @@ export function AttendanceScanner({ active, onScan, onError }: Props) {
           throw new Error("No camera device found");
         }
 
-        const cameraId = cameras[0].id;
+        const backCamera =
+          cameras.find(
+            (cam) =>
+              cam.label.toLowerCase().includes("back") ||
+              cam.label.toLowerCase().includes("rear"),
+          ) || cameras[0];
+
+        const cameraId = backCamera.id;
 
         await html5Qrcode.start(
           cameraId,
