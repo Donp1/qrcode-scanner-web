@@ -51,7 +51,7 @@ export function AttendanceScanner({ active, onScan, onError }: Props) {
 
         // Start scanning using back camera (facingMode: environment)
         await html5Qrcode.start(
-          { facingMode: { ideal: "environment" } }, // back camera
+          { facingMode: { exact: "environment" } }, // back camera
           {
             fps: 8,
             qrbox: { width: 300, height: 300 },
