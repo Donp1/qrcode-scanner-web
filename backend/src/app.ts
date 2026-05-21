@@ -11,13 +11,7 @@ import { studentRouter } from "./routes/student";
 export function createApp() {
   const app = express();
 
-  app.use(
-    cors({
-      origin: "https://qrcode-scanner-web.vercel.app", // frontend URL
-      methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-      credentials: true, // if you need cookies/auth headers
-    }),
-  );
+  app.use(cors());
 
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ extended: true }));
